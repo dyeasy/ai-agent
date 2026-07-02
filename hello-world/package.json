@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env ./src/hello-langchai.ts"
+    "start": "node --env-file=../.env ./src/hello-langchai.ts"
   },
   "keywords": [],
   "author": "",
