@@ -10,8 +10,9 @@ import { readFile } from "./tool/file_read.ts";
 import { HumanMessage, SystemMessage } from "langchain";
 
 const model = new ChatOpenAI({
-  modelName: "qwen3-coder-flash",
+  modelName: "qwen3.7-plus",
   apiKey: process.env.API_KEY,
+  temperature: 0,
   configuration: {
     baseURL: process.env.BASE_URL
     // other params...
@@ -43,7 +44,7 @@ async function main() {
           toolCall.args
         );
         const result = await readFile.invoke(toolCall);
-        console.log('resultresult',result)
+        console.log("resultresult", result);
         message.push(result);
       }
     }
