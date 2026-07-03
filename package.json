@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:p1": "pnpm --filter hello-world start"
+    "start:p1": "pnpm --filter hello-world start",
+    "start:p2": "pnpm --filter vite-test start"
   },
   "keywords": [],
   "author": "",
