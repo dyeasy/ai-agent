@@ -9,6 +9,7 @@ import { HumanMessage, SystemMessage } from "langchain";
 
 import { readFileTool } from "./tools/readFile.ts";
 import { writeFileTool } from "./tools/writeFile.ts";
+import { executeCommandTool } from "./tools/executecommand.ts";
 
 const model = new ChatOpenAI({
   modelName: "qwen3.7-plus",
@@ -18,28 +19,52 @@ const model = new ChatOpenAI({
     baseURL: process.env.BASE_URL
     // other params...
   }
-}).bindTools([readFileTool, writeFileTool]);
+}).bindTools([readFileTool, writeFileTool, executeCommandTool]);
 
-const message: any[] = [
-  new SystemMessage(`你是一个代码助手，可以使用工具读取文件，解释代码，并且还可以写入文件。
-            工作流程:
-            1:当用户要求创建文件、写入文件时，立即调用write_file 工具
-            2:当用户要求读取文件时，立即调用read_file 工具
-            3:等待工具返回内容
-            4:对返回的内容进行分析，解释
+const case1 = `创建一个功能丰富的 React TodoList 应用：
 
-            可用工具
+1. 创建项目：echo -e "\n\n" | pnpm create vite react-todo-app --template react-ts
+2. 修改 src/App.tsx，实现完整功能的 TodoList：
+- 添加、删除、编辑、标记完成
+- 分类筛选（全部/进行中/已完成）
+- 统计信息显示
+- localStorage 数据持久化
+3. 添加复杂样式：
+- 渐变背景（蓝到紫）
+- 卡片阴影、圆角
+- 悬停效果
+4. 添加动画：
+- 添加/删除时的过渡动画
+- 使用 CSS transitions
+
+注意：使用 pnpm，功能要完整，样式要美观，要有动画效果
+
+之后在 react-todo-app 项目中：
+1. 使用 pnpm install 安装依赖
+2. 使用 pnpm run dev 启动服务器
+`;
+
+async function main(caseContent: string) {
+  // 核心：使用循环处理多轮对话
+  const message: any[] = [
+    new SystemMessage(`
+            你是一个代码助手，使用工具完成任务。
+
+            当前工作目录: ${process.cwd()}
+
+            工具
             - read_file:读取文件内容
             - write_file:写入文件内容
-        `),
-  new HumanMessage(
-    `1：请创建一个文件 ./src/util.ts 并写入内容: 函数入参是一个集合，里面是一个一个的对象，对象里有一个 name 属性，这个函数的作用是把集合里的对象按 name 属性进行去重，返回一个新的集合。
-     2：之后再读取这个文件并解释代码`
-  )
-];
+            - execute_command:执行命令(支持workingDir参数指定工作目录)
 
-async function main() {
-  // 核心：使用循环处理多轮对话
+            execute_command工具重要规则
+            - execute_command: 这个工具有一个入参 workingDir，表示命令执行的工作目录，默认就是我们创建的项目目录，
+              当输入这个参数的时候就不要再去 cd  进入项目目录了，直接在当前目录执行命令即可。一定要记住，执行命令的时候一定要在项目目录下执行，否则会报错。
+            - 错误示例 { command:"cd react-todo-app && pnpm pnpm install","workingDir": "react-todo-app" }  
+            - 正确示例 { command:"pnpm install","workingDir": "react-todo-app" }
+        `),
+    new HumanMessage(caseContent)
+  ];
   while (true) {
     console.log("\n🤖 模型思考中...");
     const response = await model.invoke(message);
@@ -54,21 +79,25 @@ async function main() {
     // 处理工具调用
     for (const toolCall of response.tool_calls) {
       console.log(`\n🔧 正在执行工具 [${toolCall.name}]`);
-      
+
       let toolResult: any;
       if (toolCall.name === "read_file") {
         toolResult = await readFileTool.invoke(toolCall);
       } else if (toolCall.name === "write_file") {
         toolResult = await writeFileTool.invoke(toolCall);
+      } else if (toolCall.name === "execute_command") {
+        toolResult = await executeCommandTool.invoke(toolCall);
+      } else {
+        console.log(`未知工具: ${toolCall.name}`);
+        continue;
       }
-      
+
       // 必须将工具的结果放入 message 中，模型才能看到刚才发生了什么
       message.push(toolResult);
       console.log("工具执行结果:", toolResult.content);
     }
-    break;
   }
 }
 
-main();
+main(case1);
 

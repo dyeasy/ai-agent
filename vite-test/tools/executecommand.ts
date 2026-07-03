@@ -1,3 +1,9 @@
+/*
+ * @Author: jiangxin
+ * @Date: 2026-07-03 15:38:28
+ * @Company: orientsec.com.cn
+ * @Description:
+ */
 import { tool } from "langchain";
 import * as z from "zod";
 import { spawn } from "child_process";
@@ -6,7 +12,7 @@ export const executeCommandTool = tool(
   async ({ command, workingDir }) => {
     const cwd = workingDir || process.cwd();
     console.log(
-      `[工具调用] execute_command: 命令: ${command}, 工作目录: ${cwd}`
+      `[工具调用] execute_command: 命令: ${command},workingDir:${workingDir} 工作目录: ${cwd}`
     );
     return new Promise((resolve, reject) => {
       const [cmd, ...arg] = command.split(" ");

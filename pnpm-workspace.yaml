@@ -1,3 +1,6 @@
 packages:
   - "hello-world"
   - "vite-test"
+  - "vite-test/*"
+allowBuilds:
+  esbuild: true
