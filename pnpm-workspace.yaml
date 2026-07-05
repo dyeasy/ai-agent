@@ -1,6 +1,6 @@
 packages:
   - "hello-world"
   - "vite-test"
-  - "vite-test/*"
+  - "react-todo-app"
 allowBuilds:
   esbuild: true

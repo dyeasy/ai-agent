@@ -12,7 +12,7 @@ export const executeCommandTool = tool(
   async ({ command, workingDir }) => {
     const cwd = workingDir || process.cwd();
     console.log(
-      `[工具调用] execute_command: 命令: ${command},workingDir:${workingDir} 工作目录: ${cwd}`
+      `[工具调用] execute_command: 命令: ${command}  工作目录: ${cwd}`
     );
     return new Promise((resolve, reject) => {
       const [cmd, ...arg] = command.split(" ");
@@ -26,12 +26,16 @@ export const executeCommandTool = tool(
         if (code === 0) {
           resolve(`命令执行成功: ${command}`);
         } else {
-          reject(new Error(`命令执行失败，退出码: ${code}`));
+          // ✅ 把错误变成字符串，让 AI 自己看到并尝试修复！
+          resolve(
+            `命令 "${command}" 执行失败，退出码: ${code}。请根据报错信息分析原因并尝试修复！`
+          );
         }
       });
 
       child.on("error", (err) => {
-        reject(err);
+        // ✅ 系统级错误也交回给 AI
+        resolve(`系统错误，无法执行命令: ${err.message}`);
       });
     });
   },

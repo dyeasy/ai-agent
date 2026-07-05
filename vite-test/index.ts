@@ -11,6 +11,14 @@ import { readFileTool } from "./tools/readFile.ts";
 import { writeFileTool } from "./tools/writeFile.ts";
 import { executeCommandTool } from "./tools/executecommand.ts";
 
+import path from "path";
+
+console.log('当前工作目录:', process.cwd());
+
+const workspaceRoot = path.resolve(process.cwd(), '..');
+
+console.log('Workspace 根目录:', workspaceRoot);
+
 const model = new ChatOpenAI({
   modelName: "qwen3.7-plus",
   apiKey: process.env.API_KEY,
@@ -21,7 +29,7 @@ const model = new ChatOpenAI({
   }
 }).bindTools([readFileTool, writeFileTool, executeCommandTool]);
 
-const case1 = `创建一个功能丰富的 React TodoList 应用：
+const case1 = `创建一个功能丰富的 React TodoList 应用 这个项目应该创建的位置是位于 vite-test 目录的同级目录，不要创建到 vite-test目录中：
 
 1. 创建项目：echo -e "\n\n" | pnpm create vite react-todo-app --template react-ts
 2. 修改 src/App.tsx，实现完整功能的 TodoList：
@@ -48,20 +56,22 @@ async function main(caseContent: string) {
   // 核心：使用循环处理多轮对话
   const message: any[] = [
     new SystemMessage(`
-            你是一个代码助手，使用工具完成任务。
+        你是一个代码助手，使用工具完成任务。
 
-            当前工作目录: ${process.cwd()}
+        【目录环境说明】
+        - 当前 Agent 运行目录: ${process.cwd()} (这是 vite-test 目录)
+        - Workspace 根目录: ${workspaceRoot} (这是 ai-agent 目录)
 
-            工具
-            - read_file:读取文件内容
-            - write_file:写入文件内容
-            - execute_command:执行命令(支持workingDir参数指定工作目录)
+        【工具使用说明】
+        - read_file:读取文件内容
+        - write_file:写入文件内容
+        - execute_command:执行命令(支持 workingDir 参数指定工作目录)
 
-            execute_command工具重要规则
-            - execute_command: 这个工具有一个入参 workingDir，表示命令执行的工作目录，默认就是我们创建的项目目录，
-              当输入这个参数的时候就不要再去 cd  进入项目目录了，直接在当前目录执行命令即可。一定要记住，执行命令的时候一定要在项目目录下执行，否则会报错。
-            - 错误示例 { command:"cd react-todo-app && pnpm pnpm install","workingDir": "react-todo-app" }  
-            - 正确示例 { command:"pnpm install","workingDir": "react-todo-app" }
+        【execute_command 工具重要规则】
+        - 这个工具有一个入参 workingDir，表示命令执行的工作目录。
+        - 务必按要求在正确的 workingDir 下执行命令！
+        - 错误示例: { command:"cd ../ && pnpm create ...", workingDir: "${process.cwd()}" }  
+        - 正确示例: { command:"pnpm create ...", workingDir: "${workspaceRoot}" }
         `),
     new HumanMessage(caseContent)
   ];
