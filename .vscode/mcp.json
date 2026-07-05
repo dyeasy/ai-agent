@@ -1,0 +1,10 @@
+{
+	"servers": {
+		"hello-mcp": {
+			"type": "stdio",
+			"command": "node",
+			"args": ["/Users/jiangxin/test/ai_agent/hello-mcp/src/index.ts"]
+		}
+	},
+	"inputs": []
+}
