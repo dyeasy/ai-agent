@@ -2,6 +2,7 @@ packages:
   - "hello-world"
   - "vite-test"
   - "hello-mcp"
+  - "mode-mcp"
   - "react-todo-app"
 allowBuilds:
   esbuild: true
