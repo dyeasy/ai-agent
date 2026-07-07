@@ -8,27 +8,54 @@ import { ChatOpenAI } from "@langchain/openai";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import process from "process";
 import path from "path";
-import { HumanMessage, SystemMessage } from "langchain";
+import { HumanMessage, SystemMessage, ToolMessage } from "langchain";
 import chalk from "chalk";
 import * as readline from "readline/promises";
+import { fileURLToPath } from "url";
+import { createRequire } from "module";
+
+// 1. 获取当前这段代码所在文件的绝对路径
+const __filename = fileURLToPath(import.meta.url);
+// 2. 获取当前文件所在的目录路径
+const __dirname = path.dirname(__filename);
+
+const require = createRequire(import.meta.url);
+// 精准找到 filesystem 服务底层的可执行文件路径
+const fsServerPath =
+  require.resolve("@modelcontextprotocol/server-filesystem/dist/index.js");
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-const mcppath = path.join(
-  path.resolve(process.cwd(), ".."),
-  "hello-mcp",
-  "src/index.ts"
-);
+const mcppath = path.resolve(__dirname, "../../hello-mcp/src/index.ts");
 
 const mcpclient = new MultiServerMCPClient({
   mcpServers: {
     "my-mcp": {
       command: "node",
       args: [mcppath]
+    },
+    // 这是高德的地图 mcp 服务
+    "amap-maps-streamableHTTP": {
+      url: "https://mcp.amap.com/mcp?key=96721f671ffba725e9aafb3d0ec1114c"
+    },
+    bbbb: {
+      command: "node",
+      args: [
+        fsServerPath, // 指向本地 node_modules 里的脚本
+        path.resolve(__dirname, "..") // 你的白名单目录
+      ]
     }
+    // filesystem: {
+    //   command: "npx",
+    //   args: [
+    //     "-y",
+    //     "@modelcontextprotocol/server-filesystem",
+    //     path.resolve(__dirname, "..")
+    //   ]
+    // }
   }
 });
 const mytools = await mcpclient.getTools();
@@ -40,7 +67,7 @@ const modeInstance = new ChatOpenAI({
   configuration: {
     baseURL: process.env.BASE_URL
   }
-}).bindTools(mytools);
+}).bindTools(mytools, { parallel_tool_calls: false });
 
 const list = await mcpclient.listResources();
 const resourceContent: (string | undefined)[] = [];
@@ -53,9 +80,7 @@ for (const [name, resources] of Object.entries(list)) {
 
 resourceContent.filter(Boolean);
 
-const message: any[] = [
-    new SystemMessage(resourceContent.join(""))
-];
+const message: any[] = [new SystemMessage(resourceContent.join(""))];
 
 (async function () {
   console.log(chalk.greenBright("欢迎使用代码助手！"));
@@ -81,14 +106,22 @@ const message: any[] = [
       for (const toolCall of response.tool_calls) {
         const currentTool = mytools.find((f) => f.name === toolCall.name);
         if (!!currentTool) {
-          console.log(chalk.yellowBright(`调用工具: ${currentTool.name}`));
+          console.log(chalk.bgGreenBright(`调用工具: ${currentTool.name}`));
           const toolResponse = await currentTool.invoke(toolCall.args);
-          console.log(
-            chalk.blueBright(
-              `工具 ${currentTool.name} 执行结果: ${toolResponse}`
-            )
+
+          let contentStr = "";
+          if (typeof toolResponse == "string") {
+            contentStr = toolResponse;
+          } else if (!!toolResponse && toolResponse?.text) {
+            contentStr = toolResponse?.text;
+          }
+          message.push(
+            new ToolMessage({
+              content: contentStr,
+              tool_call_id: toolCall.id!, // 【极其重要】大模型靠这个 ID 把结果和之前的请求匹配起来
+              name: toolCall.name // 可选，但建议带上工具名称
+            })
           );
-          message.push(toolResponse);
         }
       }
     }
