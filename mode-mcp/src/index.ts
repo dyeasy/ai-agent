@@ -41,13 +41,13 @@ const mcpclient = new MultiServerMCPClient({
     "amap-maps-streamableHTTP": {
       url: "https://mcp.amap.com/mcp?key=96721f671ffba725e9aafb3d0ec1114c"
     },
-    bbbb: {
+    filesystem_local: {
       command: "node",
       args: [
         fsServerPath, // 指向本地 node_modules 里的脚本
         path.resolve(__dirname, "..") // 你的白名单目录
       ]
-    }
+    },
     // filesystem: {
     //   command: "npx",
     //   args: [
@@ -56,18 +56,31 @@ const mcpclient = new MultiServerMCPClient({
     //     path.resolve(__dirname, "..")
     //   ]
     // }
+    "chrome-devtools": {
+      command: "npx",
+      args: ["-y", "chrome-devtools-mcp@latest"]
+    }
   }
 });
 const mytools = await mcpclient.getTools();
-
+// 阿里千问模型
+// const modeInstance = new ChatOpenAI({
+//   modelName: "qwen3.7-plus",
+//   apiKey: process.env.API_KEY,
+//   temperature: 0,
+//   configuration: {
+//     baseURL: process.env.BASE_URL
+//   }
+// }).bindTools(mytools);
+// 智谱模型
 const modeInstance = new ChatOpenAI({
-  modelName: "qwen3.7-plus",
-  apiKey: process.env.API_KEY,
+  modelName: "glm-4.7",
+  apiKey: process.env.Z_API_KEY,
   temperature: 0,
   configuration: {
-    baseURL: process.env.BASE_URL
+    baseURL: process.env.Z_BASE_URL
   }
-}).bindTools(mytools, { parallel_tool_calls: false });
+}).bindTools(mytools);
 
 const list = await mcpclient.listResources();
 const resourceContent: (string | undefined)[] = [];
@@ -80,7 +93,14 @@ for (const [name, resources] of Object.entries(list)) {
 
 resourceContent.filter(Boolean);
 
-const message: any[] = [new SystemMessage(resourceContent.join(""))];
+const mapsSystemMessage = new SystemMessage(
+  "每一轮对话中，最多只能同时发起3个maps_工具调用;如果需要查询超过3个地点，必须分批执行:每批最多3个，等上一批全部返回结果后，再发起下一批; -严禁在同一轮中一次性发起超过3个maps_工具调用"
+);
+
+const message: any[] = [
+  new SystemMessage(resourceContent.join("")),
+  mapsSystemMessage
+];
 
 (async function () {
   console.log(chalk.greenBright("欢迎使用代码助手！"));
