@@ -31,6 +31,11 @@ const rl = readline.createInterface({
 
 const mcppath = path.resolve(__dirname, "../../hello-mcp/src/index.ts");
 
+const aaa=path.resolve(
+        __dirname,
+        "../../../rust/cfa-mcp/target/release/cf2-mcp"
+      );
+
 const mcpclient = new MultiServerMCPClient({
   mcpServers: {
     "my-mcp": {
@@ -59,6 +64,15 @@ const mcpclient = new MultiServerMCPClient({
     "chrome-devtools": {
       command: "npx",
       args: ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "rust-calculator": {
+      // command 直接写你编译出来的二进制文件的绝对路径！
+      // 假设你的 Rust 项目和 mode-mcp 是平级的兄弟目录
+      command: path.resolve(
+        __dirname,
+        "../../../rust/cf2-mcp/target/release/cf2-mcp"
+      ),
+      args: [] // 如果没有启动参数，留空数组即可
     }
   }
 });

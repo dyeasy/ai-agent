@@ -1,10 +1,15 @@
 {
-	"servers": {
-		"my-mcp": {
-			"type": "stdio",
-			"command": "node",
-			"args": ["/Users/jiangxin/test-project/ai-agent/hello-mcp/src/index.ts"]
-		}
-	},
-	"inputs": []
+  "servers": {
+    "my-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/Users/jiangxin/test-project/ai-agent/hello-mcp/src/index.ts"]
+    },
+    "rust-cf2-mcp": {
+      "command": "/Users/jiangxin/test-project/rust/cf2-mcp/target/release/cf2-mcp",
+      "args": [],
+      "env": {}
+    }
+  },
+  "inputs": []
 }
