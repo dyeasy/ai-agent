@@ -4,5 +4,6 @@ packages:
   - "hello-mcp"
   - "mode-mcp"
   - "react-todo-app"
+  - "hello-RAG"
 allowBuilds:
   esbuild: true

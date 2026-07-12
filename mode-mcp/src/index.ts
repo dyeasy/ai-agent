@@ -31,11 +31,6 @@ const rl = readline.createInterface({
 
 const mcppath = path.resolve(__dirname, "../../hello-mcp/src/index.ts");
 
-const aaa=path.resolve(
-        __dirname,
-        "../../../rust/cfa-mcp/target/release/cf2-mcp"
-      );
-
 const mcpclient = new MultiServerMCPClient({
   mcpServers: {
     "my-mcp": {

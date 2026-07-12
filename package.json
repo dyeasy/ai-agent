@@ -6,7 +6,8 @@
   "scripts": {
     "start:p1": "pnpm --filter hello-world start",
     "start:p2": "pnpm --filter vite-test start",
-    "start:p3": "pnpm --filter mode-mcp start"
+    "start:p3": "pnpm --filter mode-mcp start",
+    "start:p4": "pnpm --filter hello-RAG start"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,8 @@
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
 }
-
