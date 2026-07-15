@@ -5,19 +5,20 @@
  * @Description:
  */
 import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, SystemMessage } from "langchain";
+// import { HumanMessage, SystemMessage } from "langchain";
 
 import { readFileTool } from "./tools/readFile.ts";
 import { writeFileTool } from "./tools/writeFile.ts";
 import { executeCommandTool } from "./tools/executecommand.ts";
 
 import path from "path";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
-console.log('当前工作目录:', process.cwd());
+console.log("当前工作目录:", process.cwd());
 
-const workspaceRoot = path.resolve(process.cwd(), '..');
+const workspaceRoot = path.resolve(process.cwd(), "..");
 
-console.log('Workspace 根目录:', workspaceRoot);
+console.log("Workspace 根目录:", workspaceRoot);
 
 const model = new ChatOpenAI({
   modelName: "qwen3.7-plus",

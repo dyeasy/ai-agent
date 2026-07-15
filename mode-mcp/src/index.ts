@@ -8,11 +8,11 @@ import { ChatOpenAI } from "@langchain/openai";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import process from "process";
 import path from "path";
-import { HumanMessage, SystemMessage, ToolMessage } from "langchain";
 import chalk from "chalk";
 import * as readline from "readline/promises";
 import { fileURLToPath } from "url";
 import { createRequire } from "module";
+import { HumanMessage, SystemMessage, ToolMessage } from "@langchain/core/messages";
 
 // 1. 获取当前这段代码所在文件的绝对路径
 const __filename = fileURLToPath(import.meta.url);

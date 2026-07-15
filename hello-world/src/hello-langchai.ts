@@ -7,7 +7,7 @@
 import process from "node:process";
 import { ChatOpenAI } from "@langchain/openai";
 import { readFile } from "./tool/file_read.ts";
-import { HumanMessage, SystemMessage } from "langchain";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 const model = new ChatOpenAI({
   modelName: "qwen3.7-plus",
