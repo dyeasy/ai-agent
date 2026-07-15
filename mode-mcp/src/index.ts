@@ -13,6 +13,7 @@ import * as readline from "readline/promises";
 import { fileURLToPath } from "url";
 import { createRequire } from "module";
 import { HumanMessage, SystemMessage, ToolMessage } from "@langchain/core/messages";
+console.log(1111);
 
 // 1. 获取当前这段代码所在文件的绝对路径
 const __filename = fileURLToPath(import.meta.url);
@@ -60,15 +61,15 @@ const mcpclient = new MultiServerMCPClient({
       command: "npx",
       args: ["-y", "chrome-devtools-mcp@latest"]
     },
-    "rust-calculator": {
-      // command 直接写你编译出来的二进制文件的绝对路径！
-      // 假设你的 Rust 项目和 mode-mcp 是平级的兄弟目录
-      command: path.resolve(
-        __dirname,
-        "../../../rust/cf2-mcp/target/release/cf2-mcp"
-      ),
-      args: [] // 如果没有启动参数，留空数组即可
-    }
+    // "rust-calculator": {
+    //   // command 直接写你编译出来的二进制文件的绝对路径！
+    //   // 假设你的 Rust 项目和 mode-mcp 是平级的兄弟目录
+    //   command: path.resolve(
+    //     __dirname,
+    //     "../../../rust/cf2-mcp/target/release/cf2-mcp"
+    //   ),
+    //   args: [] // 如果没有启动参数，留空数组即可
+    // }
   }
 });
 const mytools = await mcpclient.getTools();

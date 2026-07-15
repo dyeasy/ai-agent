@@ -6,6 +6,16 @@
  */
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { Document } from "@langchain/core/documents";
+import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
+import { PromptTemplate } from "@langchain/core/prompts";
+import {
+  RunnablePassthrough,
+  RunnableSequence
+} from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+
+
+console.log('process.env.Z_API_KEY',process.env.Z_API_KEY)
 
 const modelInstance = new ChatOpenAI({
   model: "glm-4.7",
@@ -24,7 +34,7 @@ const embeddingsInstance = new OpenAIEmbeddings({
   }
 });
 
-const documents = [
+const docs = [
   new Document({
     pageContent: `光光是一个活泼开朗的小男孩，他有一双明亮的大眼睛，总是带着灿烂的笑容。光光最喜欢的事情就是和朋友们一起玩耍，他特别擅长踢足球，每次在球场上奔跑时，就像一道阳光一样充满活力。`,
     metadata: {
@@ -90,3 +100,48 @@ const documents = [
   })
 ];
 
+console.log("⏳ 正在将文档向量化并存入内存...");
+const vectorStore = await MemoryVectorStore.fromDocuments(
+  docs,
+  embeddingsInstance
+);
+console.log("✅ 存储完毕！\n");
+
+const retriever = vectorStore.asRetriever({ k: 2 });
+
+const prompt = PromptTemplate.fromTemplate(`
+请你扮演一个专业的助手。请严格根据以下提供的<上下文>信息来回答用户的问题。
+如果你在<上下文>中找不到答案，请直接说“我不知道”，千万不要自己编造。
+
+<上下文>:
+{context}
+
+用户问题:
+{question}
+  `);
+
+// 一个小工具函数：把检索到的多个 Document 对象，拼接成纯文本字符串
+const formatDocs = (retrievedDocs: Document[]) => {
+  return retrievedDocs.map((doc) => doc.pageContent).join("\n\n");
+};
+
+// ==========================================
+// 第三步：组装 LCEL 链并生成 (Generation)
+// ==========================================
+const ragChain = RunnableSequence.from([
+  {
+    // 1. 将用户输入传递给 retriever，查出相关的文档，再用 formatDocs 变成字符串
+    context: retriever.pipe(formatDocs),
+    // 2. 将用户输入原封不动地传递给 question 变量
+    question: new RunnablePassthrough()
+  },
+  // 3. 把拼装好的 {context, question} 传给 Prompt
+  prompt,
+  // 4. 把 Prompt 生成的完整提示词传给大模型
+  modelInstance,
+  // 5. 提取大模型返回结果中的文本部分
+  new StringOutputParser()
+]);
+
+const content = await ragChain.invoke("东东和光光是怎么成为朋友的？");
+console.log(`🤖 回答: ${content}\n`);
