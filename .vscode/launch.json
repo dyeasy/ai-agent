@@ -15,7 +15,8 @@
             "program": "${workspaceFolder}/hello-RAG/src/index.ts",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
-            ]
+            ],
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

@@ -18,7 +18,7 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 console.log('process.env.Z_API_KEY',process.env.Z_API_KEY)
 
 const modelInstance = new ChatOpenAI({
-  model: "glm-4.7",
+  model: "GLM-5.1",
   apiKey: process.env.Z_API_KEY,
   temperature: 0,
   configuration: {
@@ -107,7 +107,7 @@ const vectorStore = await MemoryVectorStore.fromDocuments(
 );
 console.log("✅ 存储完毕！\n");
 
-const retriever = vectorStore.asRetriever({ k: 2 });
+const retriever = vectorStore.asRetriever({ k: 7 });
 
 const prompt = PromptTemplate.fromTemplate(`
 请你扮演一个专业的助手。请严格根据以下提供的<上下文>信息来回答用户的问题。
