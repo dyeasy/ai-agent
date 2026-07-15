@@ -13,26 +13,36 @@ import {
   RunnableSequence
 } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
+const type = process.env.type || "Z";
+const company = !!type ? `${type}_` : "";
 
-console.log('process.env.Z_API_KEY',process.env.Z_API_KEY)
+console.log("companycompany", company);
+
+// 默认:阿里云百炼
+// Z:智谱
+// TXY: 腾讯云
 
 const modelInstance = new ChatOpenAI({
-  model: "GLM-5.1",
-  apiKey: process.env.Z_API_KEY,
+  model: process.env[`${company}MODE_NAME`],
+  apiKey: process.env[`${company}API_KEY`],
   temperature: 0,
   configuration: {
-    baseURL: process.env.Z_BASE_URL
+    baseURL: process.env[`${company}BASE_URL`]
   }
 });
 
 const embeddingsInstance = new OpenAIEmbeddings({
-  model: "embedding-3",
-  apiKey: process.env.Z_API_KEY,
+  model: process.env[`${company}VECTOR_MODEL_NAME`],
+  apiKey: process.env[`${company}API_KEY`],
   configuration: {
-    baseURL: process.env.Z_BASE_URL
-  }
+    baseURL: process.env[`${company}BASE_URL`]
+  },
+  encodingFormat: "float",
 });
+
+console.log("vvv", embeddingsInstance.model);
 
 const docs = [
   new Document({
@@ -145,3 +155,11 @@ const ragChain = RunnableSequence.from([
 
 const content = await ragChain.invoke("东东和光光是怎么成为朋友的？");
 console.log(`🤖 回答: ${content}\n`);
+
+// const r = await modelInstance.invoke([
+//   new SystemMessage("你好啊请介绍一下自己"),
+//   new HumanMessage("你好啊请介绍一下自己")
+// ]);
+
+// console.log(`🤖 回答: ${r.content}\n`);
+
