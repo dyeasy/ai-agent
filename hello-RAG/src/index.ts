@@ -39,10 +39,8 @@ const embeddingsInstance = new OpenAIEmbeddings({
   configuration: {
     baseURL: process.env[`${company}BASE_URL`]
   },
-  encodingFormat: "float",
+  encodingFormat: "float"
 });
-
-console.log("vvv", embeddingsInstance.model);
 
 const docs = [
   new Document({
@@ -117,9 +115,39 @@ const vectorStore = await MemoryVectorStore.fromDocuments(
 );
 console.log("✅ 存储完毕！\n");
 
-const retriever = vectorStore.asRetriever({ k: 7 });
+const question = "东东和光光是怎么成为朋友的？";
 
-const prompt = PromptTemplate.fromTemplate(`
+/// 写法一///////////////////////////////
+async function flow1() {
+  const scoredResults = await vectorStore.similaritySearchWithScore(
+    question,
+    3
+  );
+
+  const context = scoredResults
+    .map(([doc], i) => `[片段${i + 1}]\n${doc.pageContent}`)
+    .join("\n\n━━━━━\n\n");
+
+  const prompt = `你是一个讲友情故事的老师。基于以下故事片段回答问题，用温暖生动的语言。如果故事中没有提到，就说"这个故事里还没有提到这个细节"。
+
+故事片段:
+${context}
+
+问题: ${question}
+
+老师的回答:`;
+
+  const result = await modelInstance.invoke(prompt);
+
+  console.log(`🤖 回答: ${result.content}\n`);
+}
+/// 写法一//////////////////////////////////
+
+async function flow2() {
+    // 其实这里用similaritySearchWithScore也是可以的
+  const retriever = vectorStore.asRetriever({ k: 3 });
+
+  const prompt = PromptTemplate.fromTemplate(`
 请你扮演一个专业的助手。请严格根据以下提供的<上下文>信息来回答用户的问题。
 如果你在<上下文>中找不到答案，请直接说“我不知道”，千万不要自己编造。
 
@@ -130,36 +158,33 @@ const prompt = PromptTemplate.fromTemplate(`
 {question}
   `);
 
-// 一个小工具函数：把检索到的多个 Document 对象，拼接成纯文本字符串
-const formatDocs = (retrievedDocs: Document[]) => {
-  return retrievedDocs.map((doc) => doc.pageContent).join("\n\n");
-};
+  // 一个小工具函数：把检索到的多个 Document 对象，拼接成纯文本字符串
+  const formatDocs = (retrievedDocs: Document[]) => {
+    return retrievedDocs.map((doc) => doc.pageContent).join("\n\n");
+  };
 
-// ==========================================
-// 第三步：组装 LCEL 链并生成 (Generation)
-// ==========================================
-const ragChain = RunnableSequence.from([
-  {
-    // 1. 将用户输入传递给 retriever，查出相关的文档，再用 formatDocs 变成字符串
-    context: retriever.pipe(formatDocs),
-    // 2. 将用户输入原封不动地传递给 question 变量
-    question: new RunnablePassthrough()
-  },
-  // 3. 把拼装好的 {context, question} 传给 Prompt
-  prompt,
-  // 4. 把 Prompt 生成的完整提示词传给大模型
-  modelInstance,
-  // 5. 提取大模型返回结果中的文本部分
-  new StringOutputParser()
-]);
 
-const content = await ragChain.invoke("东东和光光是怎么成为朋友的？");
-console.log(`🤖 回答: ${content}\n`);
+  // ==========================================
+  // 第三步：组装 LCEL 链并生成 (Generation)
+  // ==========================================
+  const ragChain = RunnableSequence.from([
+    {
+      // 1. 将用户输入传递给 retriever，查出相关的文档，再用 formatDocs 变成字符串
+      context: retriever.pipe(formatDocs),
+      // 2. 将用户输入原封不动地传递给 question 变量
+      question: new RunnablePassthrough()
+    },
+    // 3. 把拼装好的 {context, question} 传给 Prompt
+    prompt,
+    // 4. 把 Prompt 生成的完整提示词传给大模型
+    modelInstance,
+    // 5. 提取大模型返回结果中的文本部分
+    new StringOutputParser()
+  ]);
 
-// const r = await modelInstance.invoke([
-//   new SystemMessage("你好啊请介绍一下自己"),
-//   new HumanMessage("你好啊请介绍一下自己")
-// ]);
+  const content = await ragChain.invoke("东东和光光是怎么成为朋友的？");
+  console.log(`🤖 回答: ${content}\n`);
+}
 
-// console.log(`🤖 回答: ${r.content}\n`);
-
+// flow1();
+flow2();
