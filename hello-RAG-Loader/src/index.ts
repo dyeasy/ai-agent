@@ -18,7 +18,7 @@ import {
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { marked } from "marked";
-import TerminalRenderer from "marked-terminal";
+import { markedTerminal } from "marked-terminal";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -43,9 +43,7 @@ const embeddingsInstance = new OpenAIEmbeddings({
 });
 
 // 2. 新增：配置 marked 使用终端渲染器
-marked.setOptions({
-  renderer: new TerminalRenderer(),
-});
+marked.use(markedTerminal());
 
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 600, // 每个块的最大字符数
