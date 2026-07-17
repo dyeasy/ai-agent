@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --env-file=../.env ./src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,9 @@
     "@langchain/community": "^1.1.29",
     "@langchain/core": "^1.2.1",
     "@langchain/openai": "^1.5.5",
-    "@types/node": "^26.1.1"
+    "@langchain/textsplitters": "^1.0.1",
+    "@types/node": "^26.1.1",
+    "cheerio": "^1.2.0",
+    "marked": "^18.0.6"
   }
 }

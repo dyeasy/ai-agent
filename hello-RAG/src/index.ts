@@ -18,8 +18,6 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 const type = process.env.type || "Z";
 const company = !!type ? `${type}_` : "";
 
-console.log("companycompany", company);
-
 // 默认:阿里云百炼
 // Z:智谱
 // TXY: 腾讯云

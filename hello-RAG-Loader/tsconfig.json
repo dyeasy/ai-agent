@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    /* 1. 升级目标版本。LangChain 等 AI 库大量使用现代语法，ES2016 太老了，直接上 ES2022 */
+    "target": "esnext", 
+    "module": "NodeNext",
+    /* 2. 最关键的一行！开启 bundler 解析策略，完美适配 pnpm 和现代 npm 包的 exports 字段 */
+    "moduleResolution": "NodeNext", 
+    
+    "types": ["node"], 
+    "allowImportingTsExtensions": true, 
+    "noEmit": true, 
+    "forceConsistentCasingInFileNames": true, 
+    "strict": true, 
+    "skipLibCheck": true ,
+    "esModuleInterop": true,         // <--- 务必开启
+  }
+}

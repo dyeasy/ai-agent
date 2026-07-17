@@ -12,7 +12,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/hello-RAG/src/index.ts",
+            "program": "${workspaceFolder}/hello-RAG-Loader/src/index.ts",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ],
