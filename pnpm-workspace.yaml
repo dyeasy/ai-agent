@@ -8,3 +8,4 @@ packages:
   - "hello-RAG-Loader"
 allowBuilds:
   esbuild: true
+  protobufjs: true

@@ -13,12 +13,13 @@
   "dependencies": {
     "@langchain/classic": "^1.0.40",
     "@langchain/community": "^1.1.29",
-    "@langchain/core": "^1.2.1",
+    "@langchain/core": "^1.2.3",
     "@langchain/openai": "^1.5.5",
     "@langchain/textsplitters": "^1.0.1",
     "@types/node": "^26.1.1",
+    "@zilliz/milvus2-sdk-node": "^3.0.3",
     "cheerio": "^1.2.0",
-    "marked": "^18.0.6",
+    "marked": "^18.0.7",
     "marked-terminal": "^7.3.0"
   }
 }
