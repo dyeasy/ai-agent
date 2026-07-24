@@ -60,10 +60,6 @@ async function run() {
     );
 
     const docs = await web_loader.load();
-    // console.log('path.resolve(__filename, "../")',path.resolve(__filename, "../../"))
-    // writeFile(path.resolve(__filename, "../../")+"bbb.txt", docs.at(0)?.pageContent ?? "", {
-    //   encoding: "utf-8"
-    // });
 
     const splitDocs = await splitter.splitDocuments(docs);
 
