@@ -5,10 +5,28 @@
  * @Description:
  */
 import { MilvusClient } from "@zilliz/milvus2-sdk-node";
+import { OpenAIEmbeddings } from "@langchain/openai";
 
 const milvusclient = new MilvusClient({
   address: "127.0.0.1:19530"
 });
+
+const VECTOR_DIM = 1024;
+
+const embeddingsMode = new OpenAIEmbeddings({
+  apiKey: process.env.API_KEY,
+  model: process.env.VECTOR_MODEL_NAME,
+  configuration: {
+    baseURL: process.env.BASE_URL
+  },
+  dimensions: VECTOR_DIM
+});
+
+async function getEmbedding(text: string) {
+  const result = await embeddingsMode.embedQuery(text);
+  return result;
+}
+
 async function main() {
   try {
     console.log("Connecting to Milvus...");
@@ -57,6 +75,25 @@ async function main() {
         tags: ["美食", "家庭"]
       }
     ];
-  } catch (error) {}
+
+    const data = await Promise.all(
+      diaryContents.map(async (data) => {
+        return {
+          ...data,
+          vector: await getEmbedding(data.content)
+        };
+      })
+    );
+    console.log("✓ Successfully generated data:");
+    const result = await milvusclient.insert({
+      collection_name: "my_collection",
+      data
+    });
+    console.log(`数据插入成功：${result.insert_cnt}`);
+  } catch (error) {
+    console.error(error.message);
+  }
 }
+
+main();
 
