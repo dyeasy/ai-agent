@@ -1,0 +1,1 @@
+使用`@modelcontextprotocol/sdk`库来创建 tool

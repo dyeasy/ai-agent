@@ -1,4 +1,10 @@
-import { tool } from "langchain";
+/*
+ * @Author: jiangxin
+ * @Date: 2026-07-03 14:27:38
+ * @Company: orientsec.com.cn
+ * @Description: 
+ */
+import { tool } from "@langchain/core/tools";
 import * as z from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";

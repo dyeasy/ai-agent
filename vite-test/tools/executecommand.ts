@@ -4,7 +4,7 @@
  * @Company: orientsec.com.cn
  * @Description:
  */
-import { tool } from "langchain";
+import { tool } from "@langchain/core/tools";
 import * as z from "zod";
 import { spawn } from "child_process";
 

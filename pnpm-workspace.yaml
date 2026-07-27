@@ -6,6 +6,7 @@ packages:
   - "react-todo-app"
   - "hello-RAG"
   - "hello-RAG-Loader"
+  - "hello-milvus"
 allowBuilds:
   esbuild: true
   protobufjs: true

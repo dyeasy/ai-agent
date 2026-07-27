@@ -1,0 +1,1 @@
+调用 满足 mcp 协议的 tool `hello-mcp`
