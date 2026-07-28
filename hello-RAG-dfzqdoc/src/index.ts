@@ -1,23 +1,15 @@
 /*
  * @Author: jiangxin
- * @Date: 2026-07-27 13:21:08
+ * @Date: 2026-07-28 13:58:13
  * @Company: orientsec.com.cn
  * @Description:
  */
-import { Milvus } from "@langchain/community/vectorstores/milvus";
+
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
-import {
-  RunnablePassthrough,
-  RunnableSequence
-} from "@langchain/core/runnables";
+import { RunnablePassthrough, RunnableSequence } from "@langchain/core/runnables";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-import {
-  ConsistencyLevelEnum,
-  MetricType,
-  MilvusClient
-} from "@zilliz/milvus2-sdk-node";
-
+import { MilvusClient } from "@zilliz/milvus2-sdk-node";
 import readline from "readline/promises";
 
 const rl = readline.createInterface({
@@ -26,8 +18,8 @@ const rl = readline.createInterface({
 });
 
 const model = new ChatOpenAI({
-  apiKey: process.env.API_KEY,
-  model: process.env.MODE_NAME,
+  apiKey: process.env.API_KEY!,
+  model: process.env.MODE_NAME!,
   configuration: {
     baseURL: process.env.BASE_URL
   },
@@ -35,8 +27,8 @@ const model = new ChatOpenAI({
 });
 
 const embeddingsModel = new OpenAIEmbeddings({
-  apiKey: process.env.API_KEY,
-  model: process.env.VECTOR_MODEL_NAME,
+  apiKey: process.env.API_KEY!,
+  model: process.env.VECTOR_MODEL_NAME!,
   configuration: {
     baseURL: process.env.BASE_URL
   },
@@ -47,43 +39,27 @@ const milvusClient = new MilvusClient({
   address: "127.0.0.1:19530"
 });
 
-// const milvusClient = new MilvusClient({
-//   address:
-//     "https://in03-607c258b1807de5.serverless.aws-eu-central-1.cloud.zilliz.com",
-//   token:
-//     "54aa13bc085cd7923f03aca5893d1420af7ee6b660a2ef4512c69a8ae887bc58b5b2d1635af73cd179d579c378b284b47b3c4f69"
-// });
-
-const message: any[] = [];
-
 const getEmbedding = async (text: string) => {
   return await embeddingsModel.embedQuery(text);
 };
 
 const rag = async (queryVector: number[]) => {
   return await milvusClient.search({
-    collection_name: "my_collection",
+    collection_name: "fastman_docs",
     data: [queryVector],
-    limit: 2
+    limit: 5
   });
 };
 
 const prompt = PromptTemplate.fromTemplate(`
-请你扮演一个专业的助手。请严格根据以下提供的<上下文>信息来回答用户的问题。
-如果你在<上下文>中找不到答案，请直接说“我不知道”，千万不要自己编造。
+        请你扮演一个fastman web 前端框架相关专业的助手。请严格根据以下提供的<上下文>信息来回答用户的问题。
+        如果你在<上下文>中找不到答案，请直接说“我不知道”，千万不要自己编造。
 
-<上下文>:
-{context}
+        <上下文>:
+        {context}
 
-用户问题:
-{question}
-
-回答要求：
-1. 如果日记中有相关信息，请结合日记内容给出详细、温暖的回答
-2. 可以总结多篇日记的内容，找出共同点或趋势
-3. 如果日记中没有相关信息，请温和地告知用户
-4. 用第一人称"你"来称呼日记的作者
-5. 回答要有同理心，让用户感到被理解和关心
+        用户问题:
+        {question}
 `);
 
 async function main() {
@@ -92,13 +68,9 @@ async function main() {
     const queryVector = await getEmbedding(question);
     const queryResult = await rag(queryVector);
 
-    console.log(queryResult.results);
     const context = queryResult.results
       .map((diary, i) => {
-        return `[日记 ${i + 1}]
-                日期: ${diary.date}
-                心情: ${diary.mood}
-                标签: ${diary.tags?.join(", ")}
+        return `[标题${i + 1}]
                 内容: ${diary.content}`;
       })
       .join("\n\n━━━━━\n\n");
@@ -112,15 +84,15 @@ async function main() {
       },
       // 3. 把拼装好的 {context, question} 传给 Prompt
       prompt,
-      (promptValue) => {
-        console.log("\n====== 最终发送给大模型的提示词 ======");
-        // promptValue 是 LangChain 的内部对象，使用 toString() 可以转成纯文本
-        console.log(promptValue.toString());
-        console.log("=======================================\n");
+    //   (promptValue) => {
+    //     console.log("\n====== 最终发送给大模型的提示词 ======");
+    //     // promptValue 是 LangChain 的内部对象，使用 toString() 可以转成纯文本
+    //     console.log(promptValue.toString());
+    //     console.log("=======================================\n");
 
-        // 注意：必须原样返回，否则 model 收不到数据
-        return promptValue;
-      },
+    //     // 注意：必须原样返回，否则 model 收不到数据
+    //     return promptValue;
+    //   },
       // 4. 把 Prompt 生成的完整提示词传给大模型
       model,
       // 5. 提取大模型返回结果中的文本部分
@@ -129,14 +101,13 @@ async function main() {
 
     console.log("\n【AI 回答】");
     const messages = await ragChain.stream(question);
+    console.log('开始输出')
     for await (const chunk of messages) {
       process.stdout.write(chunk);
     }
-    console.log(message);
   } catch (error) {
     console.log((error as Error).message);
   }
 }
 
 main();
-

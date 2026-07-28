@@ -53,9 +53,9 @@ const splitter = new RecursiveCharacterTextSplitter({
 async function run() {
   try {
     const web_loader = new CheerioWebBaseLoader(
-      "http://www.cppcc.gov.cn/zxww/2026/07/16/ARTI1784165686630164.shtml",
+      "https://dzb.hxnews.com/news/kx/202607/28/2263473.shtml",
       {
-        selector: "#page_body .column_wrapper .con"
+        selector: ".page-content"
       }
     );
 

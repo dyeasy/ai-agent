@@ -8,8 +8,15 @@ import { MilvusClient } from "@zilliz/milvus2-sdk-node";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 const milvusclient = new MilvusClient({
-  address: "127.0.0.1:19530"
+  address: "127.0.0.1:19530",
 });
+
+// const milvusclient = new MilvusClient({
+//   address:
+//     "https://in03-607c258b1807de5.serverless.aws-eu-central-1.cloud.zilliz.com",
+//   token:
+//     "54aa13bc085cd7923f03aca5893d1420af7ee6b660a2ef4512c69a8ae887bc58b5b2d1635af73cd179d579c378b284b47b3c4f69"
+// });
 
 const VECTOR_DIM = 1024;
 
@@ -29,13 +36,13 @@ async function getEmbedding(text: string) {
 
 async function main() {
   try {
-    console.log("Connecting to Milvus...");
-    await milvusclient.connectPromise;
-    console.log("✓ Connected\n");
+    // console.log("Connecting to Milvus...");
+    // await milvusclient.connectPromise;
+    // console.log("✓ Connected\n");
 
     const diaryContents = [
       {
-        id: "diary_001",
+        // id: "diary_001",
         content:
           "今天天气很好，去公园散步了，心情愉快。看到了很多花开了，春天真美好。",
         date: "2026-01-10",
@@ -43,7 +50,7 @@ async function main() {
         tags: ["生活", "散步"]
       },
       {
-        id: "diary_002",
+        // id: "diary_002",
         content:
           "今天工作很忙，完成了一个重要的项目里程碑。团队合作很愉快，感觉很有成就感。",
         date: "2026-01-11",
@@ -51,7 +58,7 @@ async function main() {
         tags: ["工作", "成就"]
       },
       {
-        id: "diary_003",
+        // id: "diary_003",
         content:
           "周末和朋友去爬山，天气很好，心情也很放松。享受大自然的感觉真好。",
         date: "2026-01-12",
@@ -59,7 +66,7 @@ async function main() {
         tags: ["户外", "朋友"]
       },
       {
-        id: "diary_004",
+        // id: "diary_004",
         content:
           "今天学习了 Milvus 向量数据库，感觉很有意思。向量搜索技术真的很强大。",
         date: "2026-01-12",
@@ -67,7 +74,7 @@ async function main() {
         tags: ["学习", "技术"]
       },
       {
-        id: "diary_005",
+        // id: "diary_005",
         content:
           "晚上做了一顿丰盛的晚餐，尝试了新菜谱。家人都说很好吃，很有成就感。",
         date: "2026-01-13",

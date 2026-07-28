@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    "module": "NodeNext",
+    /* 2. 最关键的一行！开启 bundler 解析策略，完美适配 pnpm 和现代 npm 包的 exports 字段 */
+    "moduleResolution": "NodeNext", 
+    "lib": ["ESNext"],
+    "types": ["node", "@nubjs/types"],
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noEmit": true
+  }
+}

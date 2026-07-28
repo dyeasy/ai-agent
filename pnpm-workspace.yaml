@@ -7,6 +7,7 @@ packages:
   - "hello-RAG"
   - "hello-RAG-Loader"
   - "hello-milvus"
+  - "hello-RAG-dfzqdoc"
 allowBuilds:
   esbuild: true
   protobufjs: true
