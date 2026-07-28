@@ -89,6 +89,10 @@ async function main() {
       collection_name: "my_collection",
       data
     });
+
+    console.log("正在 Flush 数据落盘...");
+    await milvusclient.flushSync({ collection_names: ["my_collection"] });
+    console.log("数据已落盘，可以开始检索了！");
     console.log(`数据插入成功：${result.insert_cnt}`);
   } catch (error) {
     console.error(error.message);

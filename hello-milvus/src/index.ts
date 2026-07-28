@@ -4,6 +4,7 @@
  * @Company: orientsec.com.cn
  * @Description:
  */
+import { Milvus } from "@langchain/community/vectorstores/milvus";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import {
@@ -11,7 +12,11 @@ import {
   RunnableSequence
 } from "@langchain/core/runnables";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-import { MilvusClient } from "@zilliz/milvus2-sdk-node";
+import {
+  ConsistencyLevelEnum,
+  MetricType,
+  MilvusClient
+} from "@zilliz/milvus2-sdk-node";
 
 import readline from "readline/promises";
 
@@ -51,7 +56,7 @@ const getEmbedding = async (text: string) => {
 const rag = async (queryVector: number[]) => {
   return await milvusClient.search({
     collection_name: "my_collection",
-    vector: queryVector,
+    data: [queryVector],
     limit: 2
   });
 };
@@ -76,20 +81,14 @@ const prompt = PromptTemplate.fromTemplate(`
 
 async function main() {
   try {
+
     const question = await rl.question(">");
     const queryVector = await getEmbedding(question);
     const queryResult = await rag(queryVector);
 
-    // console.log(`Found ${queryResult.results.length} results:\n`);
-    // queryResult.results.forEach((item, index) => {
-    //   console.log(`${index + 1}. [Score: ${item.score.toFixed(4)}]`);
-    //   console.log(`   ID: ${item.id}`);
-    //   console.log(`   Date: ${item.date}`);
-    //   console.log(`   Mood: ${item.mood}`);
-    //   console.log(`   Tags: ${item.tags?.join(", ")}`);
-    //   console.log(`   Content: ${item.content}\n`);
-    // });
+    Milvus.fromExistingCollection()
 
+    console.log(queryResult.results);
     const context = queryResult.results
       .map((diary, i) => {
         return `[日记 ${i + 1}]
@@ -99,6 +98,7 @@ async function main() {
                 内容: ${diary.content}`;
       })
       .join("\n\n━━━━━\n\n");
+
     const ragChain = RunnableSequence.from([
       {
         // 1. 将用户输入传递给 retriever，查出相关的文档，再用 formatDocs 变成字符串
@@ -108,6 +108,15 @@ async function main() {
       },
       // 3. 把拼装好的 {context, question} 传给 Prompt
       prompt,
+      (promptValue) => {
+        console.log("\n====== 最终发送给大模型的提示词 ======");
+        // promptValue 是 LangChain 的内部对象，使用 toString() 可以转成纯文本
+        console.log(promptValue.toString());
+        console.log("=======================================\n");
+
+        // 注意：必须原样返回，否则 model 收不到数据
+        return promptValue;
+      },
       // 4. 把 Prompt 生成的完整提示词传给大模型
       model,
       // 5. 提取大模型返回结果中的文本部分
@@ -116,7 +125,7 @@ async function main() {
 
     console.log("\n【AI 回答】");
     const message = await ragChain.invoke(question);
-    console.log(message)
+    console.log(message);
   } catch (error) {
     console.log((error as Error).message);
   }
