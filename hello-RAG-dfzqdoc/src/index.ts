@@ -23,7 +23,7 @@ const model = new ChatOpenAI({
   configuration: {
     baseURL: process.env.BASE_URL
   },
-  temperature: 0.7
+  temperature: 0.3
 });
 
 const embeddingsModel = new OpenAIEmbeddings({
@@ -47,7 +47,7 @@ const rag = async (queryVector: number[]) => {
   return await milvusClient.search({
     collection_name: "fastman_docs",
     data: [queryVector],
-    limit: 5
+    limit: 10
   });
 };
 

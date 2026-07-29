@@ -78,8 +78,8 @@ async function main() {
     });
 
     const splitter = new MarkdownTextSplitter({
-      chunkSize: 500,
-      chunkOverlap: 150
+      chunkSize: 200,
+      chunkOverlap: 50
     });
     const allDocuments: Document[] = [];
     for await (const entry of paths) {
