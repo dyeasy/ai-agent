@@ -8,6 +8,7 @@ packages:
   - "hello-milvus"
   - "hello-RAG-dfzqdoc"
   - "hello-outputparser"
+  - "hello-runnabled"
 allowBuilds:
   esbuild: true
   protobufjs: true
