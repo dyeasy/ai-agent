@@ -13,4 +13,4 @@ packages:
 allowBuilds:
   esbuild: true
   protobufjs: true
-  unrs-resolver: set this to true or false
+  unrs-resolver: true
