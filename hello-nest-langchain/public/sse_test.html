@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSE 流式数据展示器</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+      }
+
+      .header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+
+      .header p {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .card h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: #555;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: inherit;
+        resize: vertical;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      button {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: #e5e7eb;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
+
+      .btn-secondary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-bottom: 15px;
+      }
+
+      .status.connected {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+      }
+
+      .status.disconnected {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+      }
+
+      .status.connecting {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      .status.connected .status-dot {
+        background: #22c55e;
+        animation: pulse 2s infinite;
+      }
+
+      .status.connecting .status-dot {
+        background: #f59e0b;
+        animation: pulse 1s infinite;
+      }
+
+      .status.disconnected .status-dot {
+        background: #ef4444;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .stream-display {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        padding: 15px;
+        max-height: 500px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #333;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .stream-empty {
+        text-align: center;
+        color: #999;
+        padding: 40px 20px;
+        font-size: 13px;
+      }
+
+      .error-message {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        border: 1px solid #fca5a5;
+      }
+
+      .success-message {
+        background: #dcfce7;
+        color: #166534;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        border: 1px solid #86efac;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #3b82f6;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🌊 SSE 流式数据展示器</h1>
+        <p>实时连接 SSE 接口，无缝展示数据流</p>
+      </div>
+
+      <div class="main">
+        <!-- 左侧控制面板 -->
+        <div class="card">
+          <h2>连接设置</h2>
+
+          <div id="statusContainer" class="status disconnected">
+            <span class="status-dot"></span>
+            <span id="statusText">未连接</span>
+          </div>
+
+          <div id="messageContainer"></div>
+
+          <div class="form-group">
+            <label for="urlInput">SSE 接口 URL</label>
+            <input
+              type="text"
+              id="urlInput"
+              placeholder="例如: http://localhost:8080/api/stream"
+              value="http://localhost:3000/ai/chat/stream"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="queryInput">查询参数 (JSON 格式)</label>
+            <textarea
+              id="queryInput"
+              placeholder='{"key1": "value1", "key2": "value2"}'
+              rows="3"
+            >
+{"question":"你好啊，介绍一下自己吧"}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="headersInput">自定义请求头 (JSON 格式)</label>
+            <textarea
+              id="headersInput"
+              placeholder='{"Authorization": "Bearer token"}'
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="button-group">
+            <button class="btn-primary" id="connectBtn">连接</button>
+            <button class="btn-secondary" id="disconnectBtn" disabled>
+              断开
+            </button>
+          </div>
+
+          <div class="button-group">
+            <button class="btn-secondary" id="clearBtn">清空日志</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-value" id="messageCount">0</div>
+              <div class="stat-label">接收消息数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="connectionTime">0s</div>
+              <div class="stat-label">连接时长</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧数据展示 -->
+        <div class="card">
+          <h2>实时数据流</h2>
+          <div id="streamDisplay" class="stream-display">
+            <div class="stream-empty">等待连接...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 状态管理
+      let state = {
+        isConnected: false,
+        eventSource: null,
+        messageCount: 0,
+        startTime: null,
+        connectionTimer: null,
+        messages: [],
+      };
+
+      // DOM 元素
+      const elements = {
+        urlInput: document.getElementById('urlInput'),
+        queryInput: document.getElementById('queryInput'),
+        headersInput: document.getElementById('headersInput'),
+        connectBtn: document.getElementById('connectBtn'),
+        disconnectBtn: document.getElementById('disconnectBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+        statusContainer: document.getElementById('statusContainer'),
+        statusText: document.getElementById('statusText'),
+        messageContainer: document.getElementById('messageContainer'),
+        streamDisplay: document.getElementById('streamDisplay'),
+        messageCount: document.getElementById('messageCount'),
+        connectionTime: document.getElementById('connectionTime'),
+      };
+
+      // 更新状态显示
+      function updateStatus(status, message) {
+        elements.statusContainer.className = `status ${status}`;
+
+        const statusMessages = {
+          connected: '已连接',
+          disconnected: '未连接',
+          connecting: '连接中...',
+        };
+
+        elements.statusText.textContent = statusMessages[status] || message;
+      }
+
+      // 显示消息
+      function showMessage(type, text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `${type}-message`;
+        messageDiv.textContent = text;
+
+        elements.messageContainer.innerHTML = '';
+        elements.messageContainer.appendChild(messageDiv);
+
+        setTimeout(() => {
+          messageDiv.remove();
+        }, 5000);
+      }
+
+      // 添加流数据项
+      function addStreamItem(data) {
+        if (elements.streamDisplay.textContent.includes('等待连接')) {
+          elements.streamDisplay.innerHTML = '';
+        }
+
+        const timestamp = new Date().toLocaleTimeString('zh-CN');
+        // const text = `[${timestamp}] ${data}\n`;
+
+        elements.streamDisplay.textContent += data;
+
+        // 自动滚动到底部
+        elements.streamDisplay.scrollTop = elements.streamDisplay.scrollHeight;
+
+        // 限制显示的内容大小（防止内存溢出）
+        const maxLines = 1000;
+        const lines = elements.streamDisplay.textContent.split('\n');
+        if (lines.length > maxLines) {
+          elements.streamDisplay.textContent = lines
+            .slice(-maxLines)
+            .join('\n');
+        }
+      }
+
+      // 构建完整的 URL（包含查询参数）
+      function buildUrl(baseUrl, queryParams) {
+        const url = new URL(baseUrl);
+        for (const [key, value] of Object.entries(queryParams)) {
+          url.searchParams.append(key, value);
+        }
+        return url.toString();
+      }
+
+      // 连接 SSE
+      function connect() {
+        let url = elements.urlInput.value.trim();
+
+        if (!url) {
+          showMessage('error', '请输入有效的 SSE 接口 URL');
+          return;
+        }
+
+        if (state.isConnected) {
+          disconnect();
+        }
+
+        updateStatus('connecting', '正在连接...');
+        elements.connectBtn.disabled = true;
+
+        try {
+          // 处理查询参数
+          const queryText = elements.queryInput.value.trim();
+          if (queryText) {
+            try {
+              const queryParams = JSON.parse(queryText);
+              url = buildUrl(url, queryParams);
+            } catch (e) {
+              showMessage('error', '查询参数 JSON 格式错误');
+              elements.connectBtn.disabled = false;
+              updateStatus('disconnected');
+              return;
+            }
+          }
+
+          const headers = {};
+          const headersText = elements.headersInput.value.trim();
+
+          if (headersText) {
+            try {
+              Object.assign(headers, JSON.parse(headersText));
+            } catch (e) {
+              showMessage('error', '请求头 JSON 格式错误');
+              elements.connectBtn.disabled = false;
+              updateStatus('disconnected');
+              return;
+            }
+          }
+
+          // 创建 EventSource
+          state.eventSource = new EventSource(url);
+
+          state.eventSource.onopen = () => {
+            state.isConnected = true;
+            state.messageCount = 0;
+            state.startTime = Date.now();
+
+            updateStatus('connected');
+            elements.connectBtn.disabled = true;
+            elements.disconnectBtn.disabled = false;
+            elements.urlInput.disabled = true;
+            elements.headersInput.disabled = true;
+
+            showMessage('success', '已成功连接到 SSE 接口');
+
+            // 更新连接时长
+            state.connectionTimer = setInterval(() => {
+              const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+              elements.connectionTime.textContent = elapsed + 's';
+            }, 1000);
+          };
+
+          state.eventSource.onmessage = (event) => {
+            state.messageCount++;
+            elements.messageCount.textContent = state.messageCount;
+            console.log('v----',event.data)
+            addStreamItem(event.data);
+          };
+
+          state.eventSource.addEventListener('error', (event) => {
+            // EventSource 在服务端正常关闭连接时，也会触发 error 事件。
+            // 我们直接调用你写好的 disconnect 方法，它会自动执行 state.eventSource.close() 来彻底掐断重连机制
+            disconnect();
+
+            // 提示用户回答完毕 (因为通常断开意味着服务端发完了)
+            showMessage('success', '回答完成，连接已关闭');
+            // if (state.eventSource.readyState === EventSource.CLOSED) {
+            //     disconnect();
+            //     showMessage('error', '连接已关闭');
+            // } else {
+            //     showMessage('error', '连接出错，正在重新连接...');
+            // }
+          });
+
+          state.eventSource.addEventListener('done', (event) => {
+            console.log('接收到结束信号:', event.data); // 这里的 event.data 就是 'completed'
+
+            // 收到结束信号，前端主动彻底掐断连接！阻止浏览器重连！
+            disconnect();
+            showMessage('success', '✨ 回答全部完成！');
+          });
+
+          // 处理自定义事件
+          state.eventSource.addEventListener('*', (event) => {
+            state.messageCount++;
+            elements.messageCount.textContent = state.messageCount;
+            addStreamItem(`[${event.type}] ${event.data}`);
+          });
+        } catch (error) {
+          showMessage('error', '连接失败: ' + error.message);
+          elements.connectBtn.disabled = false;
+          updateStatus('disconnected');
+        }
+      }
+
+      // 断开连接
+      function disconnect() {
+        if (state.eventSource) {
+          state.eventSource.close();
+          state.eventSource = null;
+        }
+
+        if (state.connectionTimer) {
+          clearInterval(state.connectionTimer);
+          state.connectionTimer = null;
+        }
+
+        state.isConnected = false;
+
+        updateStatus('disconnected');
+        elements.connectBtn.disabled = false;
+        elements.disconnectBtn.disabled = true;
+        elements.urlInput.disabled = false;
+        elements.headersInput.disabled = false;
+
+        showMessage('success', '已断开连接');
+      }
+
+      // 清空日志
+      function clearLog() {
+        elements.streamDisplay.innerHTML =
+          '<div class="stream-empty">等待数据...</div>';
+        state.messageCount = 0;
+        elements.messageCount.textContent = '0';
+      }
+
+      // 事件监听
+      elements.connectBtn.addEventListener('click', connect);
+      elements.disconnectBtn.addEventListener('click', disconnect);
+      elements.clearBtn.addEventListener('click', clearLog);
+
+      // 回车连接
+      elements.urlInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          connect();
+        }
+      });
+    </script>
+  </body>
+</html>

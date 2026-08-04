@@ -1,15 +1,23 @@
-import { Injectable } from '@nestjs/common';
+/*
+ * @Author: jiangxin
+ * @Date: 2026-07-31 16:19:10
+ * @Company: orientsec.com.cn
+ * @Description:
+ */
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 
 @Injectable()
 export class BookService {
+  @Inject('BOOK_REPOSITORY')
+  private readonly bookRepository: any;
   create(createBookDto: CreateBookDto) {
     return 'This action adds a new book';
   }
 
   findAll() {
-    return `This action returns all book`;
+    return this.bookRepository.findAll();
   }
 
   findOne(id: number) {
