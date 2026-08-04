@@ -23,11 +23,11 @@ const readInstance = readline.createInterface({
   output
 });
 
-const modelInstance = new ChatOpenAI(process.env.MODE_NAME!, {
-  apiKey: process.env.API_KEY,
+const modelInstance = new ChatOpenAI(process.env.DS_MODE_NAME!, {
+  apiKey: process.env.DS_API_KEY,
   temperature: 0,
   configuration: {
-    baseURL: process.env.BASE_URL
+    baseURL: process.env.DS_BASE_URL
   }
 });
 
@@ -294,7 +294,8 @@ async function jsonParser7() {
   );
   console.log("返回结果");
   for await (const chunk of result) {
-    console.log(chunk);
+    const msg = chunk?.at?.(0);
+    if (!!msg) console.log(msg?.args);
   }
 }
 
