@@ -9,12 +9,11 @@ import { ChatOpenAI } from "@langchain/openai";
 import { readFile } from "./tool/file_read.ts";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
-const model = new ChatOpenAI({
-  modelName: "qwen3.7-plus",
-  apiKey: process.env.API_KEY,
+const model = new ChatOpenAI(process.env.DS_MODE_NAME!, {
+  apiKey: process.env.DS_API_KEY,
   temperature: 0,
   configuration: {
-    baseURL: process.env.BASE_URL
+    baseURL: process.env.DS_BASE_URL
     // other params...
   }
 }).bindTools([readFile]);
@@ -35,6 +34,8 @@ const message: any[] = [
 async function main() {
   const response = await model.invoke(message);
   message.push(response);
+
+  console.log(response);
 
   if (!!response.tool_calls?.length) {
     for (const toolCall of response.tool_calls) {

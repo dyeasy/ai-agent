@@ -4,8 +4,8 @@
  * @Company: orientsec.com.cn
  * @Description:
  */
+import { tool } from "@langchain/core/tools";
 import fs from "node:fs/promises";
-import { tool } from "langchain";
 import * as z from "zod";
 
 export const readFile = tool(
