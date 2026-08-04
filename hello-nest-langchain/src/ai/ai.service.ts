@@ -9,7 +9,6 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { Runnable } from '@langchain/core/runnables';
 import { ChatOpenAI, ChatOpenAICallOptions } from '@langchain/openai';
 import { Inject, Injectable } from '@nestjs/common';
-
 @Injectable()
 export class AiService {
   private chain: Runnable<{ question: string }, string>;

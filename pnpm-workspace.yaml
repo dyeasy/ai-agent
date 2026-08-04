@@ -10,6 +10,7 @@ packages:
   - "hello-outputparser"
   - "hello-runnabled"
   - "hello-nest-langchain"
+  - "corn-job-tool"
 allowBuilds:
   esbuild: true
   protobufjs: true
